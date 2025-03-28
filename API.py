@@ -51,5 +51,12 @@ def create_incident():
     return jsonify(new_incident), 201
 
 
+# Obtener todos los incidents
+@app.route('/incidents', methods=['GET'])
+def get_posts():
+    return jsonify(incidents)
+
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=3001)
