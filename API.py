@@ -95,5 +95,16 @@ def update_status(incident_id):
     db.session.commit()
     return jsonify(incident.to_dict())
 
+# Eliminar un incidente
+@app.route('/incidents/<int:incident_id>', methods=['DELETE'])
+def delete_incident(incident_id):
+    incident = Incident.query.get(incident_id)
+    if not incident:
+        return jsonify({"error": "Incidente no encontrado"}), 404
+
+    db.session.delete(incident)
+    db.session.commit()
+    return jsonify({"message": "Incidente eliminado correctamente"}), 200
+
 if __name__ == '__main__':
     app.run(debug=True, port=3001)
