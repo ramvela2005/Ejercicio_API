@@ -78,5 +78,22 @@ def get_incident(incident_id):
         return jsonify({"error": "Incidente no encontrado"}), 404
     return jsonify(incident.to_dict())
 
+# Actualizar estado de un incidente
+@app.route('/incidents/<int:incident_id>', methods=['PUT'])
+def update_status(incident_id):
+    incident = Incident.query.get(incident_id)
+    if not incident:
+        return jsonify({"error": "Incidente no encontrado"}), 404
+
+    data = request.get_json()
+    new_status = data.get("status", "").capitalize()
+
+    if new_status not in ["Pendiente", "En proceso", "Resuelto"]:
+        return jsonify({"error": "Estado inválido. Debe ser Pendiente, En proceso o Resuelto"}), 400
+
+    incident.status = new_status
+    db.session.commit()
+    return jsonify(incident.to_dict())
+
 if __name__ == '__main__':
     app.run(debug=True, port=3001)
