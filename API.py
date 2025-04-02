@@ -70,6 +70,13 @@ def get_incidents():
     incidents = Incident.query.all()
     return jsonify([i.to_dict() for i in incidents])
 
+# Obtener un incidente específico
+@app.route('/incidents/<int:incident_id>', methods=['GET'])
+def get_incident(incident_id):
+    incident = Incident.query.get(incident_id)
+    if not incident:
+        return jsonify({"error": "Incidente no encontrado"}), 404
+    return jsonify(incident.to_dict())
 
 if __name__ == '__main__':
     app.run(debug=True, port=3001)
