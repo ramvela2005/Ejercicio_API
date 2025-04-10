@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS 
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)  
 
-# Configuración de PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://apiuser:apipassword@localhost:5432/incidentes_db'
+# Configuración de PostgreSQL (nombre del contenedor db como host)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://apiuser:apipassword@db:5432/incidentes_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -44,7 +46,6 @@ def welcome():
 @app.route('/incidents', methods=['POST'])
 def create_incident():
     data = request.get_json()
-
     reporter = data.get("reporter", "").strip()
     description = data.get("description", "").strip()
 
@@ -61,7 +62,6 @@ def create_incident():
 
     db.session.add(incident)
     db.session.commit()
-
     return jsonify(incident.to_dict()), 201
 
 # Obtener todos los incidentes
@@ -106,5 +106,9 @@ def delete_incident(incident_id):
     db.session.commit()
     return jsonify({"message": "Incidente eliminado correctamente"}), 200
 
+# Crea las tablas automáticamente si no existen
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    app.run(debug=True, port=3001)
+    app.run(host="0.0.0.0", port=3001, debug=True)
