@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestión de Incidentes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    .container {
+      display: flex;
+      gap: 30px;
+    }
+    .form-section, .list-section {
+      flex: 1;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .incident-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .incident-header {
+      font-weight: bold;
+    }
+    .section-title {
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
+    select {
+      margin-top: 5px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Gestión de Incidentes</h1>
+<div class="container">
+  <div class="form-section">
+    <h2>Agregar Nuevo Incidente</h2>
+    <input type="text" id="reporter" placeholder="Nombre del reportante" />
+    <textarea id="description" placeholder="Descripción del incidente" rows="4"></textarea>
+    <button onclick="createIncident()">Agregar Incidente</button>
+  </div>
+
+  <div class="list-section">
+    <div>
+      <h2 class="section-title">Pendientes</h2>
+      <div id="pendienteList"></div>
+    </div>
+    <div>
+      <h2 class="section-title">En Proceso</h2>
+      <div id="enProcesoList"></div>
+    </div>
+    <div>
+      <h2 class="section-title">Resueltos</h2>
+      <div id="resueltoList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Apunta a la API por nombre del servicio en Docker Compose
+  const API_URL = "http://localhost:3001/incidents";
+
+  async function fetchIncidents() {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+      const data = await res.json();
+
+      const pendiente = document.getElementById('pendienteList');
+      const enProceso = document.getElementById('enProcesoList');
+      const resuelto = document.getElementById('resueltoList');
+
+      pendiente.innerHTML = '';
+      enProceso.innerHTML = '';
+      resuelto.innerHTML = '';
+
+      data.forEach(i => {
+        const el = document.createElement('div');
+        el.className = 'incident-card';
+        el.innerHTML = `
+          <div class="incident-header">${i.reporter}</div>
+          <div>${i.description}</div>
+          <small>${i.created_at}</small><br/>
+          <select onchange="updateStatus(${i.id}, this.value)">
+            ${["Pendiente", "En proceso", "Resuelto"].map(s =>
+              `<option value="${s}" ${i.status === s ? 'selected' : ''}>${s}</option>`
+            ).join('')}
+          </select>
+          <button onclick="deleteIncident(${i.id})" style="margin-top: 5px;">Eliminar</button>
+        `;
+
+        if (i.status === 'Pendiente') pendiente.appendChild(el);
+        else if (i.status === 'En proceso') enProceso.appendChild(el);
+        else if (i.status === 'Resuelto') resuelto.appendChild(el);
+      });
+    } catch (error) {
+      console.error("Error al obtener incidentes:", error);
+      alert("⚠️ No se pudo conectar con la API. Verificá que esté corriendo.");
+    }
+  }
+
+  async function createIncident() {
+    const reporter = document.getElementById('reporter').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reporter, description })
+    });
+
+    if (res.ok) {
+      document.getElementById('reporter').value = '';
+      document.getElementById('description').value = '';
+      fetchIncidents();
+    } else {
+      const err = await res.json();
+      alert(err.error);
+    }
+  }
+
+  async function updateStatus(id, newStatus) {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.error);
+    } else {
+      fetchIncidents();
+    }
+  }
+
+  async function deleteIncident(id) {
+    if (confirm("¿Eliminar este incidente?")) {
+      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchIncidents();
+      else alert("Error al eliminar.");
+    }
+  }
+
+  fetchIncidents();
+</script>
+
+</body>
+</html>
