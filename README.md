@@ -1,61 +1,58 @@
-# 🚨 API de Gestión de Incidentes - Flask + PostgreSQL
+# 🚨 API de Gestión de Incidentes - Flask + PostgreSQL + Docker
 
-Esta API permite a los empleados reportar y gestionar incidentes relacionados con sus equipos de trabajo (computadoras, redes, impresoras, etc).
+Esta aplicación permite reportar y gestionar incidentes relacionados con equipos de trabajo. Incluye backend en Flask + PostgreSQL y un frontend visual conectado por Docker.
 
-## Tecnologías usadas
+---
 
-- Python 3.13
-- Flask
-- Flask SQLAlchemy
+## 🐳 Tecnologías utilizadas
+
+- Python 3.11
+- Flask + Flask-SQLAlchemy
 - PostgreSQL
+- Docker + Docker Compose
+- Nginx (para servir el frontend)
 
-## Instalación y configuración
+---
 
-1. Clona este repositorio:
+## 🚀 Cómo correr el proyecto (modo automático con Docker)
+
+### 1. Cloná el repositorio
+
 ```bash
 git clone https://github.com/tuusuario/Ejercicio_API.git
-```
-
-2. Navega al directorio:
-```bash
 cd Ejercicio_API
 ```
 
-3. Crea un entorno virtual (opcional pero recomendado):
-```bash
-python -m venv venv
-.\venv\Scripts\activate
-```
-
-4. Instala las dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-## 🛠️ Configuración de base de datos
-
-1. Crea una base de datos llamada `incidentes_db` en PostgreSQL.
-2. Crea un usuario con contraseña (ej: `apiuser` / `apipassword`) y asignale permisos de conexión, uso y creación sobre el esquema `public`.
-3. Asegurate de tener algo así en tu archivo `API.py`:
-
-```python
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://apiuser:apipassword@localhost:5432/incidentes_db'
-```
-
-4. Ejecuta el siguiente script para crear las tablas:
-```bash
-python create_tables.py
-```
-
-## ▶️ Correr la API
+### 2. Levantá todos los servicios
 
 ```bash
-python API.py
+docker-compose up --build
 ```
 
-Abre tu navegador en: [http://localhost:3001](http://localhost:3001)
+### 3. Accedé desde tu navegador
 
-## Endpoints disponibles
+- **Frontend (CRUD visual):** [http://localhost:8080]
+- **API (Flask):** [http://localhost:3001]
+
+> Las tablas se crean automáticamente al levantar el servicio.
+
+---
+
+## 🔧 Estructura del proyecto
+
+```
+.
+├── API.py               # API Flask
+├── requirements.txt     # Dependencias
+├── dockerfile           # Imagen del backend
+├── docker-compose.yml   # Orquestador de servicios
+├── frontend/            # Carpeta con index.html y estilos
+└── README.md
+```
+
+---
+
+## 🧪 Endpoints disponibles
 
 | Método | Endpoint             | Descripción                                 |
 |--------|----------------------|---------------------------------------------|
@@ -65,11 +62,13 @@ Abre tu navegador en: [http://localhost:3001](http://localhost:3001)
 | PUT    | `/incidents/<id>`    | Actualizar el estado de un incidente        |
 | DELETE | `/incidents/<id>`    | Eliminar un incidente                       |
 
-## Ejemplos de uso
+---
+
+## 📝 Ejemplos de uso
 
 ### Crear incidente
 
-**POST** `/incidents`  
+**POST** `/incidents`
 ```json
 {
   "reporter": "Alejo",
@@ -77,39 +76,29 @@ Abre tu navegador en: [http://localhost:3001](http://localhost:3001)
 }
 ```
 
-### Actualizar estado
+### Cambiar estado
 
-**PUT** `/incidents/1`  
+**PUT** `/incidents/1`
 ```json
 {
   "status": "Resuelto"
 }
 ```
 
+---
+
 ## 📏 Reglas de negocio
 
 - `reporter` es obligatorio.
 - `description` debe tener al menos 10 caracteres.
-- Solo se puede modificar el campo `status`.
 - Los estados válidos son: `Pendiente`, `En proceso`, `Resuelto`.
+- Solo se puede modificar el campo `status`.
 - Si el incidente no existe, devuelve `404 Not Found`.
 
-## 📂 Archivo `requirements.txt`
+---
 
-Crea un archivo llamado `requirements.txt` con este contenido:
 
-```
-flask
-flask_sqlalchemy
-psycopg2-binary
-```
+## 🧑‍💻 Créditos
 
-Instalalo con:
+Proyecto realizado para la materia de **Tecnologías Web** 💻 por Diego Ramírez.
 
-```bash
-pip install -r requirements.txt
-```
-
-## Créditos
-
-Este proyecto fue desarrollado para la materia de **Tecnologías Web** 💻 por Diego Ramirez
