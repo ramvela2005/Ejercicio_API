@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Gestión de Incidentes</title>
   <style>
+    /* Tu CSS igual */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
@@ -19,7 +20,7 @@
     h2 {
       margin-bottom: 10px;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 8px;
       margin-bottom: 10px;
@@ -54,10 +55,6 @@
       border-bottom: 1px solid #ccc;
       padding-bottom: 4px;
     }
-    select {
-      margin-top: 5px;
-      padding: 5px;
-    }
   </style>
 </head>
 <body>
@@ -68,6 +65,11 @@
     <h2>Agregar Nuevo Incidente</h2>
     <input type="text" id="reporter" placeholder="Nombre del reportante" />
     <textarea id="description" placeholder="Descripción del incidente" rows="4"></textarea>
+    
+    <!-- Select múltiple para categorías -->
+    <label for="categories">Categorías:</label>
+    <select id="categories" multiple size="4"></select>
+
     <button onclick="createIncident()">Agregar Incidente</button>
   </div>
 
@@ -88,8 +90,30 @@
 </div>
 
 <script>
-  // Apunta a la API por nombre del servicio en Docker Compose
   const API_URL = "http://localhost:3001/incidents";
+  const CATEGORY_URL = "http://localhost:3001/categories"; 
+
+  // Cargar categorías para el select múltiple
+  async function fetchCategories() {
+    try {
+      const res = await fetch(CATEGORY_URL);
+      if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+      const categories = await res.json();
+
+      const select = document.getElementById('categories');
+      select.innerHTML = '';
+
+      categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = cat.name;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Error al obtener categorías:", error);
+      alert("⚠️ No se pudo cargar las categorías.");
+    }
+  }
 
   async function fetchIncidents() {
     try {
@@ -111,6 +135,7 @@
         el.innerHTML = `
           <div class="incident-header">${i.reporter}</div>
           <div>${i.description}</div>
+          <div><strong>Categorías:</strong> ${i.categories.map(c => c.name).join(', ')}</div>
           <small>${i.created_at}</small><br/>
           <select onchange="updateStatus(${i.id}, this.value)">
             ${["Pendiente", "En proceso", "Resuelto"].map(s =>
@@ -133,16 +158,21 @@
   async function createIncident() {
     const reporter = document.getElementById('reporter').value.trim();
     const description = document.getElementById('description').value.trim();
+    const select = document.getElementById('categories');
+    
+    // Obtener las categorías seleccionadas (ids)
+    const categories = Array.from(select.selectedOptions).map(option => parseInt(option.value));
 
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reporter, description })
+      body: JSON.stringify({ reporter, description, categories })
     });
 
     if (res.ok) {
       document.getElementById('reporter').value = '';
       document.getElementById('description').value = '';
+      select.selectedIndex = -1; 
       fetchIncidents();
     } else {
       const err = await res.json();
@@ -173,7 +203,8 @@
     }
   }
 
-  fetchIncidents();
+  // Cargar categorías y luego incidentes al cargar la página
+  fetchCategories().then(() => fetchIncidents());
 </script>
 
 </body>
