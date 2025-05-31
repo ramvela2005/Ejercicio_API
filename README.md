@@ -100,5 +100,5 @@ docker-compose up --build
 
 ## 🧑‍💻 Créditos
 
-Proyecto realizado para la materia de **Tecnologías Web** 💻 por Diego Ramírez.
+Proyecto realizado para la materia de **Base de Datos I** 💻 por Diego Ramírez y Nina Nájera.
 
